@@ -1,28 +1,32 @@
-# Stage 1: Build the Spring Boot app
-FROM maven:3.9.6-eclipse-temurin-21 AS builder
+# Use official Maven image to build the project
+FROM maven:3.9.3-eclipse-temurin-17 AS build
 
+# Set working directory inside container
 WORKDIR /app
 
-# Copy only the module containing pom.xml
-COPY "sales/sales/pom.xml" /app/pom.xml
+# Copy pom.xml and download dependencies
+COPY sales/pom.xml .
 
-# Download dependencies
-RUN mvn -e -X dependency:go-offline
+# Download dependencies only (caching for faster rebuilds)
+RUN mvn dependency:go-offline -B
 
-# Copy full source code
-COPY "sales/sales" /app
+# Copy the full project
+COPY sales/src ./src
 
-# Package the Spring Boot application
+# Build the project
 RUN mvn clean package -DskipTests
 
-# Stage 2: Run the application
-FROM eclipse-temurin:21-jre
+# --------------------------
+# Use lightweight JDK image to run the app
+FROM eclipse-temurin:17-jdk-alpine
 
 WORKDIR /app
 
-# Copy JAR from build stage
-COPY --from=builder /app/target/*.jar app.jar
+# Copy the jar from build stage
+COPY --from=build /app/target/sales-0.0.1-SNAPSHOT.jar app.jar
 
+# Expose default Spring Boot port
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Run the application
+ENTRYPOINT ["java","-jar","app.jar"]
