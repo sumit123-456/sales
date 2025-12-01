@@ -3,16 +3,16 @@ FROM maven:3.8.5-eclipse-temurin-17 AS build
 
 WORKDIR /app
 
-# Copy the POM file
-COPY "salesProject 1/sales/sales/pom.xml" ./pom.xml
+# Copy POM file
+COPY salesProject1/sales/sales/pom.xml ./pom.xml
 
 # Download dependencies
 RUN mvn dependency:go-offline -B
 
-# Copy full project source
-COPY "salesProject 1/sales/sales/" .
+# Copy all project files
+COPY salesProject1/sales/sales/ .
 
-# Build the jar
+# Build jar
 RUN mvn package -DskipTests -B
 
 
