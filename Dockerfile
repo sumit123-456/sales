@@ -7,7 +7,7 @@ COPY sales/sales/pom.xml .
 RUN mvn dependency:go-offline -B
 
 # Copy source code
-COPY sales/sales/..
+COPY sales/sales/. .
 
 # Build jar
 RUN mvn clean package -DskipTests
