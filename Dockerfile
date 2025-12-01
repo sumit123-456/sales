@@ -1,27 +1,27 @@
-# ---------- BUILD STAGE ----------
-FROM maven:3.8.5-eclipse-temurin-17 AS build
+# Stage 1: Build the Spring Boot app
+FROM maven:3.9.6-eclipse-temurin-21 AS builder
 
 WORKDIR /app
 
-# Copy POM file
-COPY sales/pom.xml .
+# Copy only the module containing pom.xml
+COPY "sales/sales/pom.xml" /app/pom.xml
 
 # Download dependencies
-RUN mvn dependency:go-offline -B
+RUN mvn -e -X dependency:go-offline
 
-# Copy all project files
-COPY sales/ .
+# Copy full source code
+COPY "sales/sales" /app
 
-# Build jar
-RUN mvn package -DskipTests -B
+# Package the Spring Boot application
+RUN mvn clean package -DskipTests
 
-
-# ---------- RUNTIME STAGE ----------
-FROM eclipse-temurin:17-jre
+# Stage 2: Run the application
+FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-COPY --from=build /app/target/*.jar app.jar
+# Copy JAR from build stage
+COPY --from=builder /app/target/*.jar app.jar
 
 EXPOSE 8080
 
